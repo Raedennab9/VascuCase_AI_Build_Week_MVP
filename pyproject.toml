@@ -1,0 +1,9 @@
+[project]
+name = "vascucase-ai"
+version = "0.1.0"
+description = "Adaptive vascular-surgery case simulation with deterministic scoring and constrained GPT feedback."
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
