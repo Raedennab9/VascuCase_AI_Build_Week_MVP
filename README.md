@@ -1,9 +1,21 @@
 # VascuCase AI
 
-**VascuCase AI**is an offline-first, deterministic vascular-surgery simulator containing eight expert-authored fictional cases. Each case has a validated 100-point rubric, critical-action detection, unsafe-choice flags, case-specific feedback, and downloadable reporting. Codex with GPT-5.6 was used to design, implement, test, debug, and harden the application. The public deployment does not require or use an OpenAI API key.
-The public pathway uses privacy-preserving offline feedback by default. Optional API-enhanced feedback is supported by the codebase and is enabled only when the deployment owner configures a secret outside source control.
+**VascuCase AI** is an offline-first, deterministic vascular-surgery simulator containing eight expert-authored fictional cases. Each case has a schema-validated deterministic 100-point rubric, critical-action detection, unsafe-choice flags, case-specific feedback, and downloadable reporting. Codex with GPT-5.6 was used to design, implement, test, debug, and harden the application. The public deployment uses privacy-preserving expert rubric-based feedback and requires no OpenAI API key. Optional API-enhanced explanation is supported by the codebase but is not enabled in the public deployment.
 
 > **Education only.** This application is not a medical device, does not provide patient-specific advice, and must not be used for diagnosis or treatment.
+
+## Live application
+
+https://vascucase.streamlit.app/
+
+## Development and validation
+
+- Built and hardened using Codex with GPT-5.6
+- 107 automated tests passed
+- Python compilation passed
+- `pip check` passed
+- Streamlit health endpoint returned HTTP 200
+- Secret scan found no high-confidence credentials
 
 ## Case library
 
