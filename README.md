@@ -1,6 +1,7 @@
 # VascuCase AI
 
 **VascuCase AI** is an adaptive vascular-surgery case simulator built for OpenAI Build Week. The MVP presents a progressive fictional acute lower-limb ischaemia case, scores critical actions with a transparent expert-authored rubric, and uses GPT-5.6 to produce individualized formative feedback when an OpenAI API key is configured.
+VascuCase AI uses a deterministic expert-authored scoring rubric and privacy-preserving offline feedback. GPT-5.6 within Codex was used to design, implement, test, debug, and harden the application. Optional API-enhanced feedback is supported by the codebase but is not enabled in the public deployment.
 
 > **Education only.** This application is not a medical device, does not provide patient-specific advice, and must not be used for diagnosis or treatment.
 
