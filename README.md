@@ -1,7 +1,6 @@
 # VascuCase AI
 
-**VascuCase AI** is an eight-case vascular-surgery simulator built for OpenAI Build Week. Learners make four progressive decisions in each fictional case, receive a transparent deterministic score, and get case-specific educational feedback that works without an API key. When configured, GPT-5.6 can enhance the explanation but cannot change the score, unsafe flags, expert pathway, or final diagnosis.
-
+**VascuCase AI**is an offline-first, deterministic vascular-surgery simulator containing eight expert-authored fictional cases. Each case has a validated 100-point rubric, critical-action detection, unsafe-choice flags, case-specific feedback, and downloadable reporting. Codex with GPT-5.6 was used to design, implement, test, debug, and harden the application. The public deployment does not require or use an OpenAI API key.
 The public pathway uses privacy-preserving offline feedback by default. Optional API-enhanced feedback is supported by the codebase and is enabled only when the deployment owner configures a secret outside source control.
 
 > **Education only.** This application is not a medical device, does not provide patient-specific advice, and must not be used for diagnosis or treatment.
