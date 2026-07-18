@@ -9,7 +9,7 @@
 Medical generative AI can explain reasoning fluently, but a language model should not independently define the clinical gold standard. VascuCase AI therefore uses a hybrid architecture:
 
 1. **Deterministic scoring** for diagnosis, Rutherford classification, anticoagulation, escalation, imaging timing, revascularization urgency, and surveillance.
-2. **GPT-5.6 feedback** constrained to the validated score and expert pathway.
+2. **GPT-5.6 feedback** constrained to structured choices, the validated score, and the expert pathway. Optional learner free text is never sent to the model.
 3. **Offline fallback** so judges can run the complete case without an API key.
 
 ## Features
@@ -20,27 +20,32 @@ Medical generative AI can explain reasoning fluently, but a language model shoul
 - Transparent 100-point rubric
 - Critical-omission and unsafe-choice detection
 - Optional GPT-5.6 personalized feedback through the OpenAI Responses API
+- Required-choice validation and reliable restart behavior at every stage
 - Downloadable JSON performance report
 - Evidence-base and safety statements embedded in the app
-- Automated scoring tests
+- Automated scoring, state-flow, feedback-boundary, and report tests
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A[Learner answers] --> B[Streamlit session]
+    A[Learner choices] --> B[Streamlit session]
     B --> C[Deterministic clinical rubric]
     C --> D[Score, strengths, critical omissions]
     D --> E{OpenAI API configured?}
-    E -- Yes --> F[GPT-5.6 constrained feedback]
+    E -- Yes --> F[GPT-5.6 constrained feedback from structured choices]
     E -- No --> G[Deterministic fallback feedback]
     F --> H[Performance report]
     G --> H
 ```
 
+The model call uses low reasoning effort, disables response storage, excludes learner free text, and cannot write to the deterministic result or expert pathway. The JSON report is built separately from a snapshot of application state.
+
 ## Run locally
 
 ### 1. Create an environment
+
+Python 3.11 is recommended because it matches the validated development and deployment target.
 
 ```bash
 python -m venv .venv
@@ -95,10 +100,17 @@ pytest -q
 1. Push this repository to GitHub.
 2. In Streamlit Community Cloud, create an app from the repository.
 3. Select `app.py` as the entry point.
-4. Add `OPENAI_API_KEY` and `OPENAI_MODEL` in app secrets only if GPT-5.6 feedback is required.
-5. Confirm the complete case works in a private browser window.
+4. In **Advanced settings**, select Python 3.11.
+5. If GPT-5.6 feedback is required, add these values in the Community Cloud **Secrets** field:
 
-Never commit an API key.
+   ```toml
+   OPENAI_API_KEY = "replace_with_your_key"
+   OPENAI_MODEL = "gpt-5.6"
+   ```
+
+6. Confirm the complete case, restart button, and JSON download work in a private browser window.
+
+The app is fully usable without secrets. Never commit an API key or `.streamlit/secrets.toml`; that file is already ignored by Git.
 
 ## Build Week evidence
 

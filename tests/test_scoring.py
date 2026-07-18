@@ -1,3 +1,6 @@
+import pytest
+
+from vascucase.case_data import CASE
 from vascucase.scoring import score_case
 
 
@@ -102,3 +105,100 @@ def test_waiting_for_motor_recovery_is_dangerous():
     result = score_case(answers)
     assert any("Motor weakness increases urgency" in item for item in result["critical_misses"])
     assert result["score"] < 100
+
+
+@pytest.mark.parametrize(
+    ("stage", "field", "option", "message_group", "message_fragment"),
+    [
+        (
+            "stage1",
+            "priorities",
+            "Apply compression and elevate the limb",
+            "improvements",
+            "compression",
+        ),
+        (
+            "stage1",
+            "priorities",
+            "Wait for routine outpatient vascular imaging",
+            "critical_misses",
+            "outpatient",
+        ),
+        (
+            "stage3",
+            "investigation",
+            "Routine CTA first, even if revascularization is delayed",
+            "critical_misses",
+            "must not delay",
+        ),
+        (
+            "stage3",
+            "adjuncts",
+            "Exercise ankle–brachial pressure testing",
+            "improvements",
+            "Exercise ABI",
+        ),
+        (
+            "stage4",
+            "strategies",
+            "Use systemic intravenous thrombolysis as routine therapy",
+            "critical_misses",
+            "Systemic intravenous thrombolysis",
+        ),
+        (
+            "stage4",
+            "strategies",
+            "Delay intervention until motor weakness resolves",
+            "critical_misses",
+            "Motor weakness increases urgency",
+        ),
+    ],
+    ids=[
+        "compression",
+        "outpatient-delay",
+        "delayed-cta",
+        "exercise-abi",
+        "systemic-thrombolysis",
+        "wait-for-motor-recovery",
+    ],
+)
+def test_every_explicitly_penalized_unsafe_option_is_flagged(
+    stage, field, option, message_group, message_fragment
+):
+    answers = expert_answers()
+    if isinstance(answers[stage][field], list):
+        answers[stage][field].append(option)
+    else:
+        answers[stage][field] = option
+
+    result = score_case(answers)
+
+    assert result["score"] < 100
+    assert any(message_fragment in message for message in result[message_group])
+
+
+SINGLE_SELECT_EXPERT_INDEX = {
+    ("stage1", "diagnosis_options"): 0,
+    ("stage2", "classification_options"): 2,
+    ("stage3", "investigation_options"): 0,
+    ("stage4", "urgency_options"): 0,
+}
+
+
+@pytest.mark.parametrize(
+    ("stage", "field", "option"),
+    [
+        (stage, option_key.removesuffix("_options"), option)
+        for (stage, option_key), expert_index in SINGLE_SELECT_EXPERT_INDEX.items()
+        for index, option in enumerate(CASE[stage][option_key])
+        if index != expert_index
+    ],
+)
+def test_every_non_expert_single_choice_is_flagged(stage, field, option):
+    answers = expert_answers()
+    answers[stage][field] = option
+
+    result = score_case(answers)
+
+    assert result["score"] < 100
+    assert result["critical_misses"] or result["improvements"]

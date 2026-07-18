@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-import json
+import secrets
+
 import streamlit as st
 
 from vascucase.case_data import CASE, LEARNER_LEVELS
 from vascucase.feedback import generate_feedback
+from vascucase.reporting import build_report_json
 from vascucase.scoring import score_case
 
 st.set_page_config(
     page_title="VascuCase AI",
     page_icon="🩸",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 CSS = """
@@ -29,10 +31,18 @@ CSS = """
   margin-bottom: 1rem;
 }
 .vc-kicker {letter-spacing: .09em; text-transform: uppercase; font-size: .78rem; opacity: .82;}
-.vc-card {border: 1px solid rgba(11,39,66,.16); border-radius: 15px; padding: 1rem 1.15rem; background: white;}
-.vc-warning {border-left: 5px solid var(--vc-red); padding: .7rem 1rem; background: #fff4f4; border-radius: 8px;}
 .vc-reference {font-size: .88rem; color: #475569;}
 .small-note {font-size: .85rem; color: #64748b;}
+*:focus-visible {outline: 3px solid #f59e0b !important; outline-offset: 3px;}
+@media (max-width: 700px) {
+  .block-container {padding: .8rem 1rem 2rem;}
+  .vc-hero {padding: 1.1rem 1.15rem; border-radius: 13px;}
+  .vc-hero h1 {font-size: 2rem !important;}
+  .vc-hero p {font-size: 1rem !important;}
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {scroll-behavior: auto !important; transition: none !important;}
+}
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -45,9 +55,25 @@ def init_state() -> None:
         "result": None,
         "feedback": None,
         "learner_level": LEARNER_LEVELS[1],
+        "safety_identifier": secrets.token_hex(16),
     }
     for key, value in defaults.items():
         st.session_state.setdefault(key, value)
+
+    if not isinstance(st.session_state.answers, dict):
+        st.session_state.answers = {}
+    if st.session_state.stage not in range(6):
+        st.session_state.stage = 0
+        st.session_state.result = None
+        st.session_state.feedback = None
+    if st.session_state.stage == 5 and (
+        not isinstance(st.session_state.result, dict)
+        or not isinstance(st.session_state.feedback, dict)
+    ):
+        st.session_state.stage = 0
+        st.session_state.answers = {}
+        st.session_state.result = None
+        st.session_state.feedback = None
 
 
 def reset_case() -> None:
@@ -82,10 +108,9 @@ with st.sidebar:
         reset_case()
         st.rerun()
     st.divider()
-    st.markdown(
-        "<div class='vc-warning'><strong>Education only.</strong><br>"
-        "Fictional scenario. Not a diagnostic or treatment tool and not for real-time patient care.</div>",
-        unsafe_allow_html=True,
+    st.warning(
+        "**Education only.** Fictional scenario. Not a diagnostic or treatment tool "
+        "and not for real-time patient care."
     )
 
 st.markdown(
@@ -98,6 +123,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+st.caption("Fictional educational case. Do not enter real patient information.")
 
 if st.session_state.stage == 0:
     left, right = st.columns([1.45, 1])
@@ -122,16 +148,16 @@ if st.session_state.stage == 0:
             st.session_state.stage = 1
             st.rerun()
     with right:
-        st.markdown("<div class='vc-card'>", unsafe_allow_html=True)
-        st.metric("Estimated completion", "5–7 min")
-        st.metric("Decision points", "4")
-        st.metric("Maximum score", "100")
-        st.markdown("**Case status:** Fictional, de-identified by design")
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.metric("Estimated completion", "5–7 min")
+            st.metric("Decision points", "4")
+            st.metric("Maximum score", "100")
+            st.markdown("**Case status:** Fictional, de-identified by design")
 
 elif st.session_state.stage == 1:
     st.subheader("Decision 1 — Initial recognition and immediate priorities")
-    st.markdown(f"<div class='vc-card'>{CASE['presentation']}</div>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.write(CASE["presentation"])
     with st.form("stage1"):
         diagnosis = st.radio(
             "Most likely clinical syndrome",
@@ -146,16 +172,21 @@ elif st.session_state.stage == 1:
             "Briefly explain your reasoning",
             placeholder="Identify the emergency, urgency, and first actions...",
             height=120,
+            help="Use only the fictional facts shown in the simulation. Do not enter patient information.",
         )
         submitted = st.form_submit_button("Lock answer and reveal examination", type="primary")
     if submitted:
-        save_answer("stage1", {"diagnosis": diagnosis, "priorities": priorities, "reasoning": reasoning})
-        st.session_state.stage = 2
-        st.rerun()
+        if diagnosis is None:
+            st.error("Choose the most likely clinical syndrome before continuing.")
+        else:
+            save_answer("stage1", {"diagnosis": diagnosis, "priorities": priorities, "reasoning": reasoning})
+            st.session_state.stage = 2
+            st.rerun()
 
 elif st.session_state.stage == 2:
     st.subheader("Decision 2 — Limb viability")
-    st.markdown(f"<div class='vc-card'>{CASE['examination']}</div>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.write(CASE["examination"])
     with st.form("stage2"):
         classification = st.radio(
             "Rutherford acute limb ischaemia category",
@@ -169,16 +200,20 @@ elif st.session_state.stage == 2:
         rationale = st.text_area("Classification rationale", height=100)
         submitted = st.form_submit_button("Lock answer and plan investigations", type="primary")
     if submitted:
-        save_answer(
-            "stage2",
-            {"classification": classification, "decisive": decisive, "rationale": rationale},
-        )
-        st.session_state.stage = 3
-        st.rerun()
+        if classification is None:
+            st.error("Choose a Rutherford category before continuing.")
+        else:
+            save_answer(
+                "stage2",
+                {"classification": classification, "decisive": decisive, "rationale": rationale},
+            )
+            st.session_state.stage = 3
+            st.rerun()
 
 elif st.session_state.stage == 3:
     st.subheader("Decision 3 — Investigation strategy")
-    st.markdown(f"<div class='vc-card'>{CASE['investigation_context']}</div>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.write(CASE["investigation_context"])
     with st.form("stage3"):
         investigation = st.radio(
             "Best next investigation strategy",
@@ -191,13 +226,17 @@ elif st.session_state.stage == 3:
         )
         submitted = st.form_submit_button("Lock answer and choose management", type="primary")
     if submitted:
-        save_answer("stage3", {"investigation": investigation, "adjuncts": adjuncts})
-        st.session_state.stage = 4
-        st.rerun()
+        if investigation is None:
+            st.error("Choose an investigation strategy before continuing.")
+        else:
+            save_answer("stage3", {"investigation": investigation, "adjuncts": adjuncts})
+            st.session_state.stage = 4
+            st.rerun()
 
 elif st.session_state.stage == 4:
     st.subheader("Decision 4 — Revascularization and surveillance")
-    st.markdown(f"<div class='vc-card'>{CASE['management_context']}</div>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.write(CASE["management_context"])
     with st.form("stage4"):
         urgency = st.radio(
             "Required treatment urgency",
@@ -212,20 +251,26 @@ elif st.session_state.stage == 4:
             "Your concise management plan",
             placeholder="State the immediate procedure, alternatives, and post-reperfusion priorities...",
             height=130,
+            help="Use only the fictional facts shown in the simulation. Do not enter patient information.",
         )
         submitted = st.form_submit_button("Submit case for scoring", type="primary")
     if submitted:
-        save_answer("stage4", {"urgency": urgency, "strategies": strategies, "plan": plan})
-        result = score_case(st.session_state.answers)
-        st.session_state.result = result
-        st.session_state.feedback = generate_feedback(
-            case=CASE,
-            answers=st.session_state.answers,
-            result=result,
-            learner_level=st.session_state.learner_level,
-        )
-        st.session_state.stage = 5
-        st.rerun()
+        if urgency is None:
+            st.error("Choose the required treatment urgency before submitting the case.")
+        else:
+            save_answer("stage4", {"urgency": urgency, "strategies": strategies, "plan": plan})
+            result = score_case(st.session_state.answers)
+            st.session_state.result = result
+            with st.spinner("Preparing your educational feedback..."):
+                st.session_state.feedback = generate_feedback(
+                    case=CASE,
+                    answers=st.session_state.answers,
+                    result=result,
+                    learner_level=st.session_state.learner_level,
+                    safety_identifier=st.session_state.safety_identifier,
+                )
+            st.session_state.stage = 5
+            st.rerun()
 
 elif st.session_state.stage == 5:
     result = st.session_state.result
@@ -258,6 +303,10 @@ elif st.session_state.stage == 5:
             st.warning(item)
 
     st.markdown("### Personalized educational feedback")
+    st.info(
+        "The score and expert pathway are produced only by deterministic rules. "
+        "Generated feedback cannot change either one."
+    )
     st.write(feedback["text"])
     st.caption(f"Feedback mode: {feedback['mode']}")
 
@@ -271,20 +320,20 @@ elif st.session_state.stage == 5:
             st.write(f"**{section}:** {data['score']}/{data['max_score']}")
             st.caption(data["note"])
 
-    report = {
-        "project": "VascuCase AI",
-        "case": CASE["title"],
-        "learner_level": st.session_state.learner_level,
-        "answers": st.session_state.answers,
-        "result": result,
-        "feedback": feedback,
-        "safety": "Education only; not for patient care.",
-    }
+    report_json = build_report_json(
+        case_title=CASE["title"],
+        learner_level=st.session_state.learner_level,
+        answers=st.session_state.answers,
+        result=result,
+        feedback=feedback,
+    )
     st.download_button(
         "Download performance report (JSON)",
-        data=json.dumps(report, indent=2),
+        data=report_json,
         file_name="vascucase_performance_report.json",
         mime="application/json",
+        help="Downloads this fictional simulation attempt to your device.",
+        on_click="ignore",
         use_container_width=True,
     )
 
@@ -303,8 +352,7 @@ elif st.session_state.stage == 5:
         st.rerun()
 
 st.divider()
-st.markdown(
-    "<div class='small-note'>VascuCase AI is a Build Week educational prototype. "
-    "Clinical content is simplified for simulation and requires expert review before curricular deployment.</div>",
-    unsafe_allow_html=True,
+st.caption(
+    "VascuCase AI is a Build Week educational prototype. Clinical content is simplified "
+    "for simulation and requires expert review before curricular deployment."
 )
