@@ -4,28 +4,34 @@ from types import SimpleNamespace
 import openai
 
 from tests.test_scoring import expert_answers
-from vascucase.case_data import CASE
-from vascucase.feedback import generate_feedback
+from vascucase.cases import CASES
+from vascucase.feedback import AI_SOURCE, EXPERT_SOURCE, generate_feedback
 from vascucase.scoring import score_case
 
 
-def test_model_request_excludes_free_text_and_preserves_authoritative_data(monkeypatch):
-    answers = expert_answers()
-    answers["stage1"]["reasoning"] = "PRIVATE FREE TEXT"
-    answers["stage2"]["rationale"] = "PRIVATE RATIONALE"
-    answers["stage4"]["plan"] = "PRIVATE PLAN"
-    result = score_case(answers)
+def test_feedback_uses_case_specific_offline_path_without_api_key(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    case = CASES[1]
+    result = score_case(case, expert_answers(case))
+
+    feedback = generate_feedback(case=case, result=result, learner_level="Medical student")
+
+    assert feedback["source"] == EXPERT_SOURCE
+    assert "100/100" in feedback["text"]
+    assert case.learning_points[0] in feedback["text"]
+
+
+def test_valid_model_response_is_explanation_only_and_preserves_authoritative_data(monkeypatch):
+    case = CASES[0]
+    result = score_case(case, expert_answers(case))
     original_result = deepcopy(result)
-    original_pathway = deepcopy(CASE["model_pathway"])
+    original_case = case.model_dump(mode="json")
     captured = {}
 
     class FakeResponses:
         def create(self, **kwargs):
             captured.update(kwargs)
-            return SimpleNamespace(
-                output_text="Strong recognition. Keep prioritizing urgent reperfusion. "
-                "Educational simulation only—not for patient care."
-            )
+            return SimpleNamespace(output_text="AI coaching. Educational simulation only—not for patient care.")
 
     class FakeClient:
         responses = FakeResponses()
@@ -35,35 +41,35 @@ def test_model_request_excludes_free_text_and_preserves_authoritative_data(monke
     monkeypatch.setattr(openai, "OpenAI", lambda **kwargs: FakeClient())
 
     feedback = generate_feedback(
-        case=CASE,
-        answers=answers,
+        case=case,
         result=result,
         learner_level="Surgical resident",
         safety_identifier="anonymous-session",
     )
 
-    assert "PRIVATE" not in captured["input"]
+    assert feedback["source"] == AI_SOURCE
     assert captured["model"] == "gpt-5.6"
     assert captured["reasoning"] == {"effort": "low"}
     assert captured["text"] == {"verbosity": "low"}
     assert captured["store"] is False
     assert captured["safety_identifier"] == "anonymous-session"
     assert result == original_result
-    assert CASE["model_pathway"] == original_pathway
-    assert "deterministic score unchanged" in feedback["mode"]
+    assert case.model_dump(mode="json") == original_case
 
 
-def test_feedback_uses_deterministic_fallback_without_api_key(monkeypatch):
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    answers = expert_answers()
-    result = score_case(answers)
+def test_api_error_is_never_labeled_ai_enhanced(monkeypatch):
+    case = CASES[0]
+    result = score_case(case, expert_answers(case))
 
-    feedback = generate_feedback(
-        case=CASE,
-        answers=answers,
-        result=result,
-        learner_level="Medical student",
-    )
+    class BrokenClient:
+        class responses:
+            @staticmethod
+            def create(**kwargs):
+                raise RuntimeError("offline")
 
-    assert "fallback" in feedback["mode"].lower()
-    assert "100/100" in feedback["text"]
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(openai, "OpenAI", lambda **kwargs: BrokenClient())
+
+    feedback = generate_feedback(case=case, result=result, learner_level="Vascular trainee")
+
+    assert feedback["source"] == EXPERT_SOURCE

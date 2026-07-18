@@ -1,29 +1,40 @@
 import json
 
 from tests.test_scoring import expert_answers
-from vascucase.case_data import CASE
+from vascucase.cases import CASES
+from vascucase.feedback import EXPERT_SOURCE
 from vascucase.reporting import build_report_json
 from vascucase.scoring import score_case
 
 
-def test_download_report_is_valid_json_and_an_independent_snapshot():
-    answers = expert_answers()
-    result = score_case(answers)
-    feedback = {"mode": "test", "text": "Educational simulation only—not for patient care."}
+def test_report_contains_case_metadata_and_no_unrestricted_answers():
+    case = CASES[3]
+    result = score_case(case, expert_answers(case))
+    timestamp = "2026-07-19T00:00:00+00:00"
 
-    report_text = build_report_json(
-        case_title=CASE["title"],
-        learner_level="Surgical resident",
-        answers=answers,
-        result=result,
-        feedback=feedback,
+    report = json.loads(
+        build_report_json(
+            case=case,
+            learner_level="Surgical resident",
+            result=result,
+            feedback_source=EXPERT_SOURCE,
+            completion_timestamp=timestamp,
+        )
     )
-    report = json.loads(report_text)
 
-    assert report["schema_version"] == 1
-    assert report["result"]["score"] == 100
-    assert report["case"] == CASE["title"]
-    assert report["safety"].startswith("Education only")
-
-    answers["stage1"]["diagnosis"] = "changed after export"
-    assert report["answers"]["stage1"]["diagnosis"] == "Acute lower-limb ischaemia"
+    assert report["schema_version"] == 2
+    assert report["case_id"] == case.case_id
+    assert report["case_title"] == case.title
+    assert report["category"] == case.category
+    assert report["total_score"] == 100
+    assert report["performance_band"] == "Excellent"
+    assert report["completion_timestamp"] == timestamp
+    assert report["feedback_source"] == EXPERT_SOURCE
+    assert "answers" not in report
+    assert "feedback_text" not in report
+    assert set(report) >= {
+        "domain_scores",
+        "correct_actions",
+        "critical_omissions",
+        "unsafe_selections",
+    }

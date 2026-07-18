@@ -1,143 +1,120 @@
 # VascuCase AI
 
-**VascuCase AI** is an adaptive vascular-surgery case simulator built for OpenAI Build Week. The MVP presents a progressive fictional acute lower-limb ischaemia case, scores critical actions with a transparent expert-authored rubric, and uses GPT-5.6 to produce individualized formative feedback when an OpenAI API key is configured.
-VascuCase AI uses a deterministic expert-authored scoring rubric and privacy-preserving offline feedback. GPT-5.6 within Codex was used to design, implement, test, debug, and harden the application. Optional API-enhanced feedback is supported by the codebase but is not enabled in the public deployment.
+**VascuCase AI** is an eight-case vascular-surgery simulator built for OpenAI Build Week. Learners make four progressive decisions in each fictional case, receive a transparent deterministic score, and get case-specific educational feedback that works without an API key. When configured, GPT-5.6 can enhance the explanation but cannot change the score, unsafe flags, expert pathway, or final diagnosis.
+
+The public pathway uses privacy-preserving offline feedback by default. Optional API-enhanced feedback is supported by the codebase and is enabled only when the deployment owner configures a secret outside source control.
 
 > **Education only.** This application is not a medical device, does not provide patient-specific advice, and must not be used for diagnosis or treatment.
 
-## Why this design
+## Case library
 
-Medical generative AI can explain reasoning fluently, but a language model should not independently define the clinical gold standard. VascuCase AI therefore uses a hybrid architecture:
+| Case | Category | Difficulty |
+|---|---|---|
+| AF-related embolic acute lower-limb ischaemia, Rutherford IIb | Arterial emergencies | Intermediate |
+| Chronic limb-threatening ischaemia with diabetic toe gangrene and infection | Limb salvage | Advanced |
+| Severe symptomatic internal carotid stenosis after TIA | Cerebrovascular disease | Intermediate |
+| Ruptured infrarenal abdominal aortic aneurysm | Aortic emergencies | Advanced |
+| Thrombosed popliteal artery aneurysm with acute limb ischaemia | Arterial emergencies | Advanced |
+| Iliofemoral DVT with phlegmasia cerulea dolens | Venous emergencies | Advanced |
+| Penetrating common femoral artery injury with hard signs | Vascular trauma | Advanced |
+| Acute embolic mesenteric ischaemia | Visceral vascular emergencies | Advanced |
 
-1. **Deterministic scoring** for diagnosis, Rutherford classification, anticoagulation, escalation, imaging timing, revascularization urgency, and surveillance.
-2. **GPT-5.6 feedback** constrained to structured choices, the validated score, and the expert pathway. Optional learner free text is never sent to the model.
-3. **Offline fallback** so judges can run the complete case without an API key.
+The landing page supports random selection, category-filtered random selection, or a specific case. Random mode avoids an immediate repeat, tracks completed case IDs in session state, and resets the eligible history after all eligible cases have been completed. Case titles are non-diagnostic; the final diagnosis is revealed only after submission.
 
-## Features
-
-- Progressive four-stage vascular emergency simulation
-- Learner-level selection
-- Rutherford acute limb ischaemia classification
-- Transparent 100-point rubric
-- Critical-omission and unsafe-choice detection
-- Optional GPT-5.6 personalized feedback through the OpenAI Responses API
-- Required-choice validation and reliable restart behavior at every stage
-- Downloadable JSON performance report
-- Evidence-base and safety statements embedded in the app
-- Automated scoring, state-flow, feedback-boundary, and report tests
-
-## Architecture
+## Safety-first architecture
 
 ```mermaid
 flowchart LR
-    A[Learner choices] --> B[Streamlit session]
-    B --> C[Deterministic clinical rubric]
-    C --> D[Score, strengths, critical omissions]
-    D --> E{OpenAI API configured?}
-    E -- Yes --> F[GPT-5.6 constrained feedback from structured choices]
-    E -- No --> G[Deterministic fallback feedback]
-    F --> H[Performance report]
+    A["Streamlit choices"] --> B["Validated VascularCase schema"]
+    B --> C["Deterministic 100-point rubric"]
+    C --> D["Score, domain scores, omissions, unsafe flags"]
+    D --> E{"API key configured?"}
+    E -- No --> F["Expert rubric-based feedback"]
+    E -- Yes --> G["GPT-5.6 explanation only"]
+    F --> H["Identifier-free JSON report"]
     G --> H
 ```
 
-The model call uses low reasoning effort, disables response storage, excludes learner free text, and cannot write to the deterministic result or expert pathway. The JSON report is built separately from a snapshot of application state.
+- `vascucase/cases/schema.py` defines the Pydantic models and validates four stages, option references, a 100-point rubric, references, learning points, and synthetic/identifier-free metadata.
+- `vascucase/cases/library.py` contains the eight fictional cases, stable option IDs, rubrics, expert pathways, and selection/history logic.
+- `vascucase/scoring.py` is the sole scoring authority and applies consistent bands: Excellent (90–100), Good (75–89), Developing (60–74), and Needs improvement (below 60).
+- `vascucase/feedback.py` builds offline case-specific feedback. Its isolated Responses API path receives rubric-controlled data only and returns prose only.
+- `vascucase/reporting.py` exports case metadata and scoring results without answers, identifiers, or unrestricted free text.
+- `app.py` owns presentation and recoverable Streamlit session state; it contains no clinical rubric.
+
+## Features
+
+- Eight progressive four-stage vascular scenarios
+- Learner-level, random, category, and specific-case selection
+- Pydantic-validated cases and explicit 100-point rubrics
+- Deterministic domain scores, critical omissions, and unsafe-choice flags
+- Expert-authored offline feedback for the public application
+- Optional GPT-5.6 explanation through the OpenAI Responses API
+- Case history, no immediate random repeat, restart, and new-case workflows
+- Diagnosis concealment until submission
+- Identifier-free downloadable JSON reports
+- Keyboard focus visibility, reduced-motion support, mobile layout rules, and required-answer validation
+- Parametrized schema, selection, safety, scoring, reporting, feedback, and Streamlit flow tests
 
 ## Run locally
 
-### 1. Create an environment
-
-Python 3.11 is recommended because it matches the validated development and deployment target.
+Python 3.11 is the validated runtime.
 
 ```bash
 python -m venv .venv
 ```
 
-Activate it:
+Activate the environment and install the pinned dependencies:
 
 ```bash
 # Windows PowerShell
 .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 
 # macOS/Linux
 source .venv/bin/activate
-```
-
-### 2. Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
-### 3. Optional GPT-5.6 configuration
-
-The app works without an API key. For personalized model feedback:
-
-```bash
-# macOS/Linux
-export OPENAI_API_KEY="your_key"
-export OPENAI_MODEL="gpt-5.6"
-
-# Windows PowerShell
-$env:OPENAI_API_KEY="your_key"
-$env:OPENAI_MODEL="gpt-5.6"
-```
-
-### 4. Launch
+Launch and test:
 
 ```bash
 streamlit run app.py
-```
-
-Open the local address displayed by Streamlit, usually `http://localhost:8501`.
-
-## Run tests
-
-```bash
 pytest -q
 ```
 
-## Deploy on Streamlit Community Cloud
+## Optional GPT-5.6 configuration
 
-1. Push this repository to GitHub.
-2. In Streamlit Community Cloud, create an app from the repository.
-3. Select `app.py` as the entry point.
-4. In **Advanced settings**, select Python 3.11.
-5. If GPT-5.6 feedback is required, add these values in the Community Cloud **Secrets** field:
+No secret is required for the complete public workflow. To enable AI-enhanced explanation, configure environment variables or Streamlit secrets outside source control:
 
-   ```toml
-   OPENAI_API_KEY = "replace_with_your_key"
-   OPENAI_MODEL = "gpt-5.6"
-   ```
+```bash
+OPENAI_API_KEY="your_key"
+OPENAI_MODEL="gpt-5.6"
+```
 
-6. Confirm the complete case, restart button, and JSON download work in a private browser window.
+The Responses API request uses low reasoning effort, low verbosity, disabled response storage, an anonymous safety identifier, and a bounded timeout. API absence, failure, or an empty response uses the expert rubric-based pathway and is never labeled AI-enhanced.
 
-The app is fully usable without secrets. Never commit an API key or `.streamlit/secrets.toml`; that file is already ignored by Git.
+## Streamlit Community Cloud
 
-## Build Week evidence
+1. Push the repository to GitHub.
+2. Create a Community Cloud app with `app.py` as the entry point and Python 3.11.
+3. Deploy without secrets for the public offline pathway.
+4. If AI enhancement is desired, add `OPENAI_API_KEY` and `OPENAI_MODEL` in the Cloud secrets UI only.
+5. Verify random/category/specific selection, three representative cases, restart, new-case, and JSON download in a private browser window.
 
-The official submission requires a project built with Codex and GPT-5.6, a repository, a public YouTube demo under three minutes, and the `/feedback` Codex Session ID from the primary build thread. Continue development in Codex, preserve the session ID, and make meaningful timestamped commits during the submission period.
+Never commit `.streamlit/secrets.toml`, `.env`, API keys, or learner/patient data. These paths are excluded by `.gitignore`.
 
-Suggested Codex tasks:
+## Clinical references
 
-- Review the project architecture and run the tests.
-- Improve accessibility and responsive design.
-- Add a second, clearly fictional vascular case using the existing schema.
-- Add test coverage for every unsafe option.
-- Prepare deployment and verify the public URL.
-
-## Clinical evidence base
-
-1. Björck M, Earnshaw JJ, Acosta S, et al. European Society for Vascular Surgery (ESVS) 2020 Clinical Practice Guidelines on the Management of Acute Limb Ischaemia. *Eur J Vasc Endovasc Surg.* 2020;59(2):173-218. doi: [10.1016/j.ejvs.2019.09.006](https://doi.org/10.1016/j.ejvs.2019.09.006). PMID: 31899099.
-2. Mazzolai L, Teixido-Tura G, Lanzi S, et al. 2024 ESC Guidelines for the management of peripheral arterial and aortic diseases. *Eur Heart J.* 2024;45(36):3538-3700. doi: [10.1093/eurheartj/ehae179](https://doi.org/10.1093/eurheartj/ehae179). PMID: 39210722.
+Each case renders its own references after completion. The library is grounded in original summaries of the [ESVS acute limb ischaemia guideline](https://esvs.org/wp-content/uploads/2021/08/Acute-Limb-Ischaemia-Feb-2020.pdf), [Global Vascular Guidelines](https://vascular.org/research-quality/guidelines-and-reporting-standards/clinical-practice-guidelines), [IWGDF/IDSA diabetic-foot infection guideline](https://www.idsociety.org/practice-guideline/diabetic-foot-infections/), [ESVS carotid guideline](https://esvs.org/wp-content/uploads/2023/03/ESVS-2023-Carotid-guidelines.pdf), [ESVS aortic aneurysm guideline](https://esvs.org/wp-content/uploads/2024/02/ESVS-2024-AAA-Guidelines.pdf), [SVS popliteal aneurysm guideline summary](https://vascular.org/news-advocacy/articles-press-releases/society-vascular-surgery-releases-clinical-practice-0), [ESVS venous thrombosis guideline](https://www.sciencedirect.com/science/article/pii/S1078588420308686), [ESVS vascular trauma guideline](https://esvs.org/wp-content/uploads/2025/01/2025-Vascular-Trauma-Guidelines.pdf), and [WSES acute mesenteric ischaemia guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9580452/).
 
 ## Limitations
 
-- Single fictional case in the MVP
-- Simplified educational rubric rather than a validated assessment instrument
-- No learner accounts, longitudinal analytics, or educator dashboard
-- GPT feedback quality depends on model availability and configuration
-- Clinical content requires local expert and curricular review before institutional adoption
+- The rubrics are expert-authored educational instruments, not validated clinical assessment tools.
+- The cases simplify real-world uncertainty and require local expert/curricular review before institutional use.
+- There are no learner accounts, longitudinal analytics, educator authoring tools, or diagnostic functions.
+- Live GPT-5.6 quality and availability depend on the user’s optional configuration.
 
 ## License
 
-MIT License. Clinical guideline content remains the property of its respective publishers; this project contains original summaries and links, not reproduced guideline tables.
+MIT License. Clinical guideline content remains the property of its publishers; this repository contains original fictional cases, summaries, and links rather than reproduced guideline tables.

@@ -1,57 +1,78 @@
 # Validation report
 
-Validated on July 18, 2026.
+Validated on July 19, 2026.
 
 ## Environment
 
 - Python 3.11.13
 - Streamlit 1.59.2
 - OpenAI Python SDK 2.46.0
+- Pydantic 2.13.4
 - Pytest 8.4.2
 
-## Automated checks
+## Library and deterministic scoring
 
-- Python syntax compilation: passed
-- Deterministic scoring tests: passed
-- Every explicitly penalized unsafe-choice test: passed
-- Every non-expert single-choice option test: passed
-- Complete four-stage Streamlit expert-path UI test: passed
-- Required-choice validation at all four stages: passed
-- Restart and incomplete-report state recovery: passed
-- JSON download control and serialized report payload: passed
-- GPT request boundary (structured choices only, no storage, authoritative inputs unchanged): passed
-- No-key feedback fallback: passed
+- Eight unique Pydantic-validated fictional cases: passed
+- Exactly four ordered stages per case: passed
+- Stable, case-unique option IDs: passed
+- Correct and unsafe rubric IDs resolve to declared options: passed
+- Every rubric totals exactly 100 points: passed
+- References and take-home learning points present in every case: passed
+- Synthetic-case flags and common patient-identifier-field rejection: passed
+- Expert path scores 100/100 in all eight cases: passed
+- Critical omission detection in all eight cases: passed
+- Every explicitly declared unsafe option is flagged: passed
+- Shared bands at exact thresholds (90/75/60): passed
+
+## Selection, state, interface, and reporting
+
+- Random selection and no immediate repeat: passed
+- Completed-case filtering and all-eligible history reset: passed
+- Category filtering: passed
+- Required-answer validation: passed
+- Restart clears current answers and retains the current case: passed
+- New-case navigation preserves completed history and returns to landing: passed
+- Incomplete report state safely recovers to landing: passed
+- Final diagnosis concealed before submission and revealed afterward: passed
+- Complete Streamlit interaction for acute limb ischaemia: passed
+- Complete Streamlit interaction for ruptured abdominal aortic aneurysm: passed
+- Complete Streamlit interaction for acute mesenteric ischaemia: passed
+- JSON download control does not rerun or corrupt report state: passed
+- JSON includes required case/scoring metadata and excludes answers/free text: passed
+
+## Feedback boundary
+
+- No-key path produces case-specific “Expert rubric-based feedback”: passed
+- API failure is not labeled AI-enhanced: passed
+- Valid mocked GPT-5.6 response is labeled “AI-enhanced explanation”: passed
+- Responses API request uses `gpt-5.6`, low reasoning, low verbosity, disabled storage, and anonymous safety identifier: passed
+- Authoritative case and deterministic result remain unchanged: passed
+
+## Build and deployment checks
+
+- Pinned requirements installed: passed
+- `pytest -q`: **107 passed in 23.16s**
+- Python compilation (`compileall`): passed
 - Installed-package consistency (`pip check`): passed
-- Streamlit HTTP startup check: `200 OK`
+- Git diff whitespace/error check: passed
+- Streamlit local health endpoint: **200 ok**
+- High-confidence credential-pattern scan: no matches
 
-## Test result
+## Accessibility and responsive implementation
 
-```text
-32 passed
-```
+- Native Streamlit form controls and semantic status components are used.
+- Required controls expose visible errors.
+- Keyboard focus has a high-contrast outline.
+- Mobile spacing/type rules are retained.
+- Reduced-motion preferences disable transitions and animation.
+- Sidebar behavior remains responsive and stage content uses wrapping native containers.
 
-## Validated expert-path output
+## Not verified in this environment
 
-- Total score: 100/100
-- Performance band: Excellent
-- Critical omissions: 0
-- Downloadable JSON report available
+- Live GPT-5.6 response, because no user API key was used
+- Public Streamlit Community Cloud deployment and live URL
+- Screenshot-based desktop/mobile browser regression: the Codex browser runtime could not connect because Windows denied access to its `AppData` runtime path (`EPERM`); Streamlit's native interaction harness covered three full cases, restart, new-case, conceal/reveal, validation, and download instead
+- External clinical expert review or formal assessment-rubric validation
+- Public YouTube video and final Devpost form submission
 
-## Accessibility and responsive checks
-
-- Native Streamlit bordered containers replace presentation-only HTML wrappers.
-- The education-only warning uses Streamlit's semantic status component.
-- Required controls expose visible validation errors.
-- Keyboard focus has a high-contrast visible outline.
-- The sidebar uses automatic responsive behavior.
-- Mobile spacing/type adjustments and reduced-motion rules are present.
-
-## Scope not yet validated
-
-- Live GPT-5.6 API response, because no user API key was used in this build environment
-- Public Streamlit deployment
-- Public GitHub permissions
-- YouTube video and Devpost form fields
-- Screenshot-based browser regression checks: the Codex in-app browser controller could not start because its Windows runtime path was denied; the native Streamlit interaction harness covered every app stage, restart, and download instead
-
-These remaining items require the project owner’s accounts and Build Week Codex session.
+These remaining items require the project owner's credentials, public accounts, or independent clinical/curricular review.

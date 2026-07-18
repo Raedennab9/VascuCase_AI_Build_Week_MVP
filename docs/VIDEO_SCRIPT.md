@@ -1,37 +1,42 @@
 # Public demo video script — target 2:40 to 2:55
 
-## 0:00–0:18 — Problem
+## 0:00–0:16 — Problem and safety
 
-“Vascular emergencies are uncommon enough that many learners get limited practice, but when they occur, recognition and escalation must be immediate. VascuCase AI is a fictional, education-only vascular case simulator that teaches this time-critical reasoning.”
+“Vascular emergencies are time-critical, but learners may have few opportunities to practice them. VascuCase AI is an education-only simulator built from eight fictional cases. It never diagnoses real patients.”
 
-## 0:18–0:35 — Safety and architecture
+## 0:16–0:37 — Landing and case library
 
-“The project does not diagnose real patients. Clinical correctness comes from a transparent expert-authored rubric. GPT-5.6 is used only to personalize feedback after the deterministic score has been calculated.”
+Show learner level and the three case modes. Open the category selector and specific-case list, then return to random mode.
 
-## 0:35–1:45 — Live case walkthrough
+“Learners can draw a random case, choose a vascular category, or select a specific non-diagnostic case title. Random mode avoids immediate repeats and tracks completion across the eight-case library.”
 
-- Select “Surgical resident.”
-- Start the acute lower-limb ischaemia case.
-- Identify acute limb ischaemia.
-- Select urgent vascular activation, unfractionated heparin, analgesia, IV access, fasting, and urgent labs.
-- Classify the neurological deficit as Rutherford IIb.
-- Choose rapid imaging only if it does not delay revascularization.
-- Choose immediate revascularization and appropriate open/endovascular/hybrid components.
+## 0:37–1:32 — Progressive case walkthrough
 
-Narration: “The case is progressive, so later findings are not disclosed before the learner commits to the earlier decision.”
+Start “The suddenly painful, cold leg” as a surgical resident.
 
-## 1:45–2:15 — Results
+- Choose immediate vascular activation, heparin, analgesia, and preparation.
+- Classify the neurological deficit as immediately threatened.
+- Choose rapid treatment-directed imaging without reperfusion delay.
+- Choose immediate open, endovascular, or hybrid revascularization with reperfusion surveillance.
 
-Show the score, strengths, critical omissions, section scoring, model pathway, GPT-5.6 feedback, and JSON download.
+“Later findings appear only after each answer is locked, and the diagnosis remains concealed. The same four-stage engine also runs limb salvage, carotid, aortic, venous, trauma, popliteal aneurysm, and mesenteric cases.”
 
-Narration: “Unsafe choices are explicitly flagged. With no API key, the app still produces reliable rubric-based feedback, so the complete experience remains testable.”
+## 1:32–2:08 — Results and report
 
-## 2:15–2:42 — Codex and GPT-5.6
+Show the final diagnosis reveal, 100-point score, performance band, domain scores, correct actions, critical omissions, unsafe flags, expert pathway, feedback source, and JSON download.
 
-“Codex helped build the Streamlit interface, session-state workflow, modular case schema, scoring engine, automated tests, documentation, and deployment setup. GPT-5.6 receives only the validated score and expert pathway, then adapts the explanation to the learner’s level.”
+“The score is produced only by the case rubric. The public app works offline and labels this Expert rubric-based feedback. The downloaded report contains case metadata and rubric results, never unrestricted answers or identifiers.”
 
-Show a brief view of the repository, tests, and one Codex session excerpt. Do not expose API keys.
+Click **New vascular case**, choose “Pain out of proportion,” and briefly show its first stage to demonstrate the reusable library.
 
-## 2:42–2:55 — Close
+## 2:08–2:38 — Codex and GPT-5.6 architecture
 
-“VascuCase AI demonstrates a safer pattern for generative AI in medical education: deterministic clinical standards, adaptive explanation, and an explicit boundary against real patient care.”
+Show `vascucase/cases/schema.py`, the case library, scorer, and a `107 passed` terminal result.
+
+“Codex helped refactor the starter into validated case objects, deterministic scoring, resilient Streamlit state, safe reporting, and parametrized tests for every explicitly unsafe option. GPT-5.6 is optional and isolated downstream: it can improve explanation, but it cannot calculate or change the score, omissions, expert pathway, or diagnosis.”
+
+## 2:38–2:55 — Close
+
+“VascuCase AI demonstrates a safer pattern for generative AI in medical education: explicit clinical standards, adaptive explanation, complete offline operation, and a firm boundary against real patient care.”
+
+Do not show API keys, Streamlit secrets, real patient data, or copyrighted clinical images during recording.
