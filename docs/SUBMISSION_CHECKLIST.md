@@ -2,20 +2,20 @@
 
 ## Working project
 
-- [ ] Continue development in Codex using GPT-5.6
-- [ ] Preserve the `/feedback` Codex Session ID from the primary thread
-- [ ] Make meaningful timestamped commits during the submission period
-- [ ] Run `pytest -q`
-- [ ] Test the full case with no API key
+- [x] Continue development in Codex using GPT-5.6
+- [x] Preserve the primary Codex Session ID: `019f76b0-8bf6-7730-a255-00ab9c632bb3`
+- [x] Make meaningful timestamped commits during the submission period
+- [x] Run `pytest -q` (`32 passed`)
+- [x] Test the full case with no API key
 - [ ] Test GPT-5.6 feedback with the deployment secret configured
 - [ ] Confirm the app works in a private/incognito browser window
-- [ ] Confirm no API key or private data is committed
+- [x] Confirm no API key or private data is committed
 
 ## Repository
 
 - [ ] Public GitHub repository with MIT license, or private repository shared with `testing@devpost.com` and `build-week-event@openai.com`
-- [ ] README contains installation and testing instructions
-- [ ] Repository contains no real patient data
+- [x] README contains installation and testing instructions
+- [x] Repository contains no real patient data
 - [ ] GitHub “About” description and topics completed
 
 Suggested repository description:
@@ -31,7 +31,7 @@ Suggested topics:
 - [ ] Public Streamlit URL added to Devpost
 - [ ] `OPENAI_API_KEY` stored only as a deployment secret
 - [ ] `OPENAI_MODEL=gpt-5.6` configured
-- [ ] Fallback feedback verified
+- [x] Fallback feedback verified
 
 ## Devpost
 
@@ -46,7 +46,7 @@ Suggested topics:
 - [ ] Public YouTube video is under 3 minutes
 - [ ] Video has clear audio and explains both Codex and GPT-5.6 use
 - [ ] No unlicensed music, patient images, or third-party copyrighted material
-- [ ] `/feedback` Codex Session ID entered
+- [x] `/feedback` Codex Session ID recorded for entry: `019f76b0-8bf6-7730-a255-00ab9c632bb3`
 - [ ] English testing instructions included
 
 ## Final test instructions for judges

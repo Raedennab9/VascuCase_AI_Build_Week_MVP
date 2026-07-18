@@ -45,7 +45,7 @@ I used **Codex** to develop and refine the Python and Streamlit project structur
 
 The clinical content was written as an original fictional scenario and cross-checked against the ESVS acute limb ischaemia guideline and the 2024 ESC peripheral arterial and aortic disease guideline.
 
-> Before submission, replace this paragraph with an exact account of the Codex work completed in your primary build thread. Include your dated commits and `/feedback` Codex Session ID in the required form fields.
+In the primary Codex build thread on July 18, 2026, I preserved the starter in commit `db3213b`, then used Codex to audit the architecture, install dependencies, exercise all four Streamlit stages, harden restart and invalid-state recovery, improve keyboard/mobile accessibility, isolate report generation, exclude learner free text from GPT requests, pin deployment dependencies, and expand the suite from 8 to 32 tests. The main implementation commit is `5b12428`; the final repository log contains the timestamped validation/documentation commit. Codex Session ID for the Devpost field: `019f76b0-8bf6-7730-a255-00ab9c632bb3`.
 
 ### Challenges
 
