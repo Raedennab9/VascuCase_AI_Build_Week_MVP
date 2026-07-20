@@ -17,6 +17,7 @@ from vascucase.cases.library import (
 )
 from vascucase.cases.schema import Question, VascularCase
 from vascucase.feedback import generate_feedback
+from vascucase.presentation import build_option_orders, valid_option_orders
 from vascucase.reporting import build_report_json
 from vascucase.scoring import score_case
 
@@ -65,6 +66,8 @@ def init_state() -> None:
     defaults: dict[str, Any] = {
         "stage": 0,
         "answers": {},
+        "option_orders": {},
+        "last_option_orders": {},
         "selected_case_id": None,
         "result": None,
         "feedback": None,
@@ -82,6 +85,10 @@ def init_state() -> None:
 
     if not isinstance(st.session_state.answers, dict):
         st.session_state.answers = {}
+    if not isinstance(st.session_state.option_orders, dict):
+        st.session_state.option_orders = {}
+    if not isinstance(st.session_state.last_option_orders, dict):
+        st.session_state.last_option_orders = {}
     if not isinstance(st.session_state.completed_case_ids, list):
         st.session_state.completed_case_ids = []
     st.session_state.completed_case_ids = list(
@@ -97,6 +104,10 @@ def init_state() -> None:
         st.session_state.selected_case_id = None
         if st.session_state.stage > 0:
             _clear_attempt(stage=0)
+    elif st.session_state.stage > 0:
+        selected_case = CASES_BY_ID[st.session_state.selected_case_id]
+        if not valid_option_orders(selected_case, st.session_state.option_orders):
+            _set_new_option_orders(selected_case)
     if st.session_state.stage == 5 and (
         not isinstance(st.session_state.result, dict)
         or not isinstance(st.session_state.feedback, dict)
@@ -114,6 +125,7 @@ def _clear_widget_answers() -> None:
 def _clear_attempt(*, stage: int, clear_case: bool = False) -> None:
     st.session_state.stage = stage
     st.session_state.answers = {}
+    st.session_state.option_orders = {}
     st.session_state.result = None
     st.session_state.feedback = None
     st.session_state.completion_timestamp = None
@@ -124,7 +136,9 @@ def _clear_attempt(*, stage: int, clear_case: bool = False) -> None:
 
 def restart_case() -> None:
     if st.session_state.selected_case_id in CASES_BY_ID:
+        case = CASES_BY_ID[st.session_state.selected_case_id]
         _clear_attempt(stage=1)
+        _set_new_option_orders(case)
     else:
         _clear_attempt(stage=0, clear_case=True)
 
@@ -136,6 +150,15 @@ def new_case() -> None:
 def current_case() -> VascularCase | None:
     case_id = st.session_state.selected_case_id
     return CASES_BY_ID.get(case_id)
+
+
+def _set_new_option_orders(case: VascularCase) -> None:
+    previous = st.session_state.last_option_orders.get(case.case_id)
+    if not valid_option_orders(case, previous):
+        previous = None
+    orders = build_option_orders(case, previous_orders=previous)
+    st.session_state.option_orders = orders
+    st.session_state.last_option_orders[case.case_id] = orders
 
 
 def begin_case() -> None:
@@ -150,6 +173,7 @@ def begin_case() -> None:
     st.session_state.completed_case_ids = sorted(normalized_history)
     st.session_state.selected_case_id = case.case_id
     st.session_state.previous_case_id = case.case_id
+    _set_new_option_orders(case)
 
 
 def render_badges(case: VascularCase) -> None:
@@ -164,20 +188,24 @@ def render_badges(case: VascularCase) -> None:
 
 def render_question(case: VascularCase, question: Question) -> Any:
     labels = case.option_labels
-    option_ids = [option.option_id for option in question.options]
+    option_ids = st.session_state.option_orders[question.question_id]
+    displayed_labels = {
+        option_id: f"{chr(65 + index)}. {labels[option_id]}"
+        for index, option_id in enumerate(option_ids)
+    }
     key = f"answer_{case.case_id}_{question.question_id}"
     if question.kind == "single":
         return st.radio(
             question.prompt,
             option_ids,
-            format_func=labels.__getitem__,
+            format_func=displayed_labels.__getitem__,
             index=None,
             key=key,
         )
     return st.multiselect(
         question.prompt,
         option_ids,
-        format_func=labels.__getitem__,
+        format_func=displayed_labels.__getitem__,
         key=key,
     )
 

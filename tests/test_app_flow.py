@@ -109,6 +109,10 @@ def test_restart_clears_answers_and_preserves_current_case(monkeypatch):
     case = CASES_BY_ID["iliofemoral_dvt_phlegmasia"]
     app = _start_specific_case(case.case_id)
     first_stage = case.stages[0]
+    first_orders = {
+        question_id: list(option_ids)
+        for question_id, option_ids in app.session_state["option_orders"].items()
+    }
     correct = next(option.option_id for option in first_stage.question.options if option.option_id in case.correct_actions)
     _widget(app.radio, first_stage.question.prompt).set_value(correct)
     _button(app, "Lock answer and continue").click().run(timeout=20)
@@ -120,6 +124,32 @@ def test_restart_clears_answers_and_preserves_current_case(monkeypatch):
     assert app.session_state["answers"] == {}
     assert _widget(app.radio, first_stage.question.prompt).value is None
     assert any(button.label == "New vascular case" for button in app.button)
+    restarted_orders = app.session_state["option_orders"]
+    for stage in case.stages:
+        question_id = stage.question.question_id
+        correct_id = next(
+            option.option_id
+            for option in stage.question.options
+            if option.option_id in case.correct_actions
+        )
+        assert restarted_orders[question_id].index(correct_id) != first_orders[question_id].index(correct_id)
+
+
+def test_choices_display_as_randomized_lettered_options(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    case = CASES_BY_ID["ali_af_embolism_iib"]
+    app = _start_specific_case(case.case_id)
+    question = case.stages[0].question
+    radio = _widget(app.radio, question.prompt)
+
+    assert [option[:2] for option in radio.options] == ["A.", "B.", "C.", "D."]
+    correct_id = next(
+        option.option_id
+        for option in question.options
+        if option.option_id in case.correct_actions
+    )
+    correct_position = app.session_state["option_orders"][question.question_id].index(correct_id)
+    assert case.option_labels[correct_id] in radio.options[correct_position]
 
 
 def test_new_case_workflow_preserves_history_and_returns_to_landing(monkeypatch):

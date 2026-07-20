@@ -62,6 +62,7 @@ flowchart LR
 - Expert-authored offline feedback for the public application
 - Optional GPT-5.6 explanation through the OpenAI Responses API
 - Case history, no immediate random repeat, restart, and new-case workflows
+- Randomized A–D option order per attempt, with the correct answer moved on restart
 - Diagnosis concealment until submission
 - Identifier-free downloadable JSON reports
 - Keyboard focus visibility, reduced-motion support, mobile layout rules, and required-answer validation
