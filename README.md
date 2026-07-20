@@ -11,7 +11,7 @@ https://vascucase.streamlit.app/
 ## Development and validation
 
 - Built and hardened using Codex with GPT-5.6
-- 107 automated tests passed
+- 111 automated tests passed
 - Python compilation passed
 - `pip check` passed
 - Streamlit health endpoint returned HTTP 200
