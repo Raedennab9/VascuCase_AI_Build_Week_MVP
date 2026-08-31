@@ -22,8 +22,9 @@ def test_report_contains_case_metadata_and_no_unrestricted_answers():
         )
     )
 
-    assert report["schema_version"] == 2
+    assert report["schema_version"] == 3
     assert report["case_id"] == case.case_id
+    assert report["case_version"] == case.case_version
     assert report["case_title"] == case.title
     assert report["category"] == case.category
     assert report["total_score"] == 100
@@ -32,6 +33,13 @@ def test_report_contains_case_metadata_and_no_unrestricted_answers():
     assert report["feedback_source"] == EXPERT_SOURCE
     assert "answers" not in report
     assert "feedback_text" not in report
+    assert {
+        "user_id",
+        "name",
+        "email",
+        "consent_given",
+        "privacy_notice_version",
+    }.isdisjoint(report)
     assert set(report) >= {
         "domain_scores",
         "correct_actions",

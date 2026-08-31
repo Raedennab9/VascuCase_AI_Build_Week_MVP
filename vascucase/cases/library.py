@@ -11,9 +11,11 @@ from vascucase.cases.schema import (
     UnsafeChoice,
     VascularCase,
 )
+from vascucase.database import TRAINING_LEVELS
 
 
-LEARNER_LEVELS = ("Medical student", "Surgical resident", "Vascular trainee")
+LEARNER_LEVELS = TRAINING_LEVELS
+CURRENT_CASE_VERSION = "1"
 CASE_MODES = ("Random vascular case", "Choose category", "Choose a specific case")
 DISCLAIMER = (
     "Fictional educational simulation only. Not a diagnostic or treatment tool and not for real-time patient care."
@@ -82,6 +84,7 @@ def _case(
     )
     return VascularCase(
         case_id=case_id,
+        case_version=CURRENT_CASE_VERSION,
         title=title,
         category=category,
         difficulty=difficulty,

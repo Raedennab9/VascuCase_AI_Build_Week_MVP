@@ -68,6 +68,7 @@ class VascularCase(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     case_id: str = Field(pattern=r"^[a-z0-9_]+$")
+    case_version: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
     title: str = Field(min_length=5)
     category: str = Field(min_length=4)
     difficulty: Difficulty

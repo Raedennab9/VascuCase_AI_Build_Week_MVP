@@ -19,9 +19,10 @@ def build_report(
     """Create an identifier-free report from rubric-controlled fields only."""
     completed_at = completion_timestamp or datetime.now(timezone.utc).isoformat()
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "project": "VascuCase AI",
         "case_id": case.case_id,
+        "case_version": case.case_version,
         "case_title": case.title,
         "category": case.category,
         "learner_level": learner_level,

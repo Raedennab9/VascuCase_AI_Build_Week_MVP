@@ -1,0 +1,8 @@
+# Local Supabase CLI project identifier. This is not a hosted-project credential.
+project_id = "vascucase-ai"
+
+[api]
+enabled = true
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
