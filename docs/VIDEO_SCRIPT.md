@@ -31,7 +31,7 @@ Click **New vascular case**, choose “Pain out of proportion,” and briefly sh
 
 ## 2:08–2:38 — Codex and GPT-5.6 architecture
 
-Show `vascucase/database.py`, the case schema/library, Supabase migration, scorer, and the final passing test result. Mention that the migration was reviewed locally but was not applied remotely during development.
+Show `vascucase/database.py`, the case schema/library, Supabase migration, scorer, and the final passing test result. Mention that the CLI-linked migration is applied to hosted Supabase, the live registration RPC returns the supported dictionary row shape, and local Streamlit registration persistence has been verified.
 
 “Codex helped refactor the starter into validated case objects, deterministic scoring, resilient Streamlit state, safe reporting, and parametrized tests for every explicitly unsafe option. GPT-5.6 is optional and isolated downstream: it can improve explanation, but it cannot calculate or change the score, omissions, expert pathway, or diagnosis.”
 

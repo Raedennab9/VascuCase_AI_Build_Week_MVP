@@ -98,7 +98,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Apply the Supabase migration and add the two server-side Supabase settings described below before registering. The deterministic case engine and expert feedback remain available without an OpenAI API key, but persistent registration and result storage require Supabase.
+The hosted Supabase migration is applied. Add the two server-side Supabase settings described below before registering from a new local or hosted Streamlit environment. The deterministic case engine and expert feedback remain available without an OpenAI API key, but persistent registration and result storage require Supabase.
 
 Launch and test:
 
@@ -122,40 +122,32 @@ The Responses API request uses low reasoning effort, low verbosity, disabled res
 
 The repository is initialized for the Supabase CLI under `supabase/`. The canonical schema is the timestamped migration in `supabase/migrations/`; do not recreate these tables manually in the Dashboard after migration management begins.
 
-1. Install the Supabase CLI and authenticate with `supabase login`. The CLI login uses a Supabase personal access token stored by the CLI, while `supabase link` may prompt for the database password. These operator credentials are separate from the app's `SUPABASE_SECRET_KEY`; never put them in Streamlit secrets or source control.
-2. Link this checkout to the intended hosted project, then verify the selected target before any remote command:
+**Current deployment status:** the Supabase CLI is installed, this checkout is linked to project `gyuatepflreqnfocvspp`, and migration `20260831000000_create_vascucase_registration.sql` has been applied successfully to the hosted database. The live `register_vascucase_participant` RPC was verified through `supabase-py` with its dictionary response shape, and the local Streamlit application can persist participant registration through the database wrapper.
+
+For a new checkout or future migration work:
+
+1. Authenticate with `supabase login`. The CLI login uses a Supabase personal access token stored by the CLI, while `supabase link` may prompt for the database password. These operator credentials are separate from the app's `SUPABASE_SECRET_KEY`; never put them in Streamlit secrets or source control.
+2. Link the checkout and verify the selected target before any remote command:
 
 ```bash
 supabase link --project-ref <YOUR_PROJECT_REF>
 supabase projects list
 ```
 
-3. Choose the correct database-history path:
-   - **Verified empty project:** review the local migration, back up anything that must be retained, and continue to the dry run below.
-   - **Existing schema or migration history:** stop before pushing. Back up the database, run `supabase migration list`, inspect the remote public/private schemas, and baseline or reconcile the database in a separate forward-migration workflow. Do not run `supabase db pull` blindly beside this initial migration, and do not create parallel `vascucase_participants` or `case_results` tables over existing data.
+3. Review migration history and the target schema before creating or applying any future migration:
 
-If the CLI is unavailable, use the Supabase SQL Editor read-only before any
-deployment:
-
-```sql
-select *
-from supabase_migrations.schema_migrations
-order by version;
+```bash
+supabase migration list
 ```
-4. For a verified clean target, preview and apply the migration. `supabase db push` applies DDL directly to the linked remote project:
+
+If an unexpected migration is already recorded, preserve it and create a forward migration rather than rewriting deployed history.
+
+4. Preview and apply future reviewed migrations. `supabase db push` applies DDL directly to the linked remote project:
 
 ```bash
 supabase db push --dry-run
 supabase db push
 ```
-
-**Current repository status:** this migration has only been authored locally.
-The Supabase CLI is unavailable and this checkout has no local CLI link
-metadata, so remote migration history could not be verified here. A read-only
-relation check reported no existing `users`, `vascucase_participants`, or
-`case_results` table, but migration history must still be checked before an
-apply. The existing GitHub integration was not changed, and neither
-`supabase db push` nor another remote apply command was run.
 
 The migration creates `public.vascucase_participants` and
 `public.case_results`, then exposes only narrow service-role RPC wrappers
@@ -183,7 +175,7 @@ rejects a public client key in the secret-key field, and the app rejects
 non-TLS remote project URLs. Store the secret key only in the Streamlit server
 secret store. No public client key or email-delivery configuration is required.
 
-For the Supabase GitHub integration, set **Working directory** to `.` because `supabase/` is at the repository root, and make the Supabase migration check a required GitHub status check. If **Deploy to production** is enabled, committed migrations are applied when the configured production branch is pushed or merged. If it is disabled, Git pushes do not deploy the migration; use a reviewed CLI/CI `supabase db push` workflow instead. This implementation does not perform either remote deployment automatically.
+For the Supabase GitHub integration, set **Working directory** to `.` because `supabase/` is at the repository root, and make the Supabase migration check a required GitHub status check. If **Deploy to production** is enabled, future committed migrations are applied when the configured production branch is pushed or merged. If it is disabled, Git pushes do not deploy migrations; use a reviewed CLI/CI `supabase db push` workflow instead. The current registration migration is already deployed.
 
 ## Registration, persistence, and privacy
 
@@ -220,7 +212,7 @@ For the Supabase GitHub integration, set **Working directory** to `.` because `s
 
 1. Push the repository to GitHub.
 2. Create a Community Cloud app with `app.py` as the entry point and Python 3.11.
-3. Complete the migration-history review and apply the migration to the intended project. No remote migration was performed by this repository change.
+3. Confirm the linked hosted project still reports the applied VascuCase migration and the registration RPC before configuring a new deployment.
 4. Add `SUPABASE_URL` and `SUPABASE_SECRET_KEY` to the app's **Advanced settings → Secrets** field. Never commit them.
 5. If AI enhancement is desired, add `OPENAI_API_KEY` and `OPENAI_MODEL` in the same Cloud secrets UI only.
 6. In a private browser window, verify new registration with institution fields and consent, exact duplicate-email reuse without profile disclosure, neutral handling of a conflicting duplicate, automatic result storage, overall and per-version attempt numbering, retry behavior, case selection/restart, and JSON download.

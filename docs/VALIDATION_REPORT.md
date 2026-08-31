@@ -63,7 +63,7 @@ Validated on August 31, 2026.
 ## Build and deployment checks
 
 - Pinned requirements installed: passed
-- `pytest -q`: **212 passed in 25.60s**
+- `pytest -q`: **212 passed in 25.78s**
 - Database/identity tests: **76 passed**
 - Streamlit flow tests: **34 passed**
 - Python compilation (`compileall`): passed
@@ -71,6 +71,10 @@ Validated on August 31, 2026.
 - Git diff whitespace/error check: passed
 - Streamlit local health endpoint: **200 ok**
 - High-confidence credential-pattern scan: no matches
+- Supabase CLI installed and checkout linked to project `gyuatepflreqnfocvspp`: verified
+- Versioned VascuCase migration applied to the hosted Supabase database: verified
+- Live registration RPC returns the supported dictionary row shape through `supabase-py`: verified
+- Local Streamlit participant registration persists successfully to hosted Supabase: verified
 
 ## Accessibility and responsive implementation
 
@@ -84,8 +88,7 @@ Validated on August 31, 2026.
 ## Not verified in this environment
 
 - Live GPT-5.6 response, because no user API key was used
-- Live Supabase Data API integration and remote migration, because no server secret or authorized remote deployment was used; no remote migration was applied
-- Remote migration history or schema compatibility, because the Supabase CLI was unavailable locally and no project was linked; run `supabase migration list` and inspect the target schemas before any apply
+- Live hosted case-result insertion, retry idempotency, and concurrent overall/per-version attempt allocation
 - Public Streamlit Community Cloud deployment and live URL
 - Screenshot-based desktop/mobile browser regression: the Codex browser runtime could not connect because Windows denied access to its `AppData` runtime path (`EPERM`); Streamlit's native interaction harness covered three full cases, restart, new-case, conceal/reveal, validation, and download instead
 - External clinical expert review or formal assessment-rubric validation

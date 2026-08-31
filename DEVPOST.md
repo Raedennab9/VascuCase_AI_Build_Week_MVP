@@ -38,7 +38,7 @@ VascuCase AI separates clinical correctness from generative explanation:
 
 ### How I built it
 
-I used Codex in the primary Build Week thread to audit and expand the existing Streamlit starter, design the reusable case schema and state machine, author and validate the eight-case library, isolate the OpenAI Responses API boundary, build safe report export, and add broad automated coverage. The responsive interface preserves visible keyboard focus, reduced-motion support, semantic Streamlit components, required-answer validation, restart recovery, and mobile spacing. The Supabase participant/result migration is version-controlled locally; no remote migration was applied during this work.
+I used Codex in the primary Build Week thread to audit and expand the existing Streamlit starter, design the reusable case schema and state machine, author and validate the eight-case library, isolate the OpenAI Responses API boundary, build safe report export, and add broad automated coverage. The responsive interface preserves visible keyboard focus, reduced-motion support, semantic Streamlit components, required-answer validation, restart recovery, and mobile spacing. The Supabase CLI is installed and linked, the version-controlled participant/result migration is applied to the hosted project, the live registration RPC is verified, and the local Streamlit application persists participant registration successfully.
 
 The 212-test suite parametrizes all eight rubrics and every explicitly unsafe option, validates the registration gate, normalized-email duplicate handling, institution/consent fields, RPC response-shape compatibility, version-aware result storage, retry idempotency, selection/history behavior, and report privacy, and completes multiple cases through Streamlit’s native interaction harness. Clinical content is original and fictional, with case-specific society and consensus references linked after completion.
 
@@ -68,7 +68,7 @@ Generative AI is most useful in high-stakes education when it is downstream of a
 
 ### What’s next
 
-Next steps include external vascular-education review, formal rubric validation, migration-history reconciliation and reviewed remote deployment, a stronger verified-identity design before any learner-history feature, educator-authored case tooling, governed de-identified or pseudonymized analytics, localization, and accessibility testing with additional assistive technologies. The application will remain a fictional educational simulator rather than a diagnostic product.
+Next steps include external vascular-education review, formal rubric validation, production backup/monitoring procedures, live result-write and concurrency verification, a stronger verified-identity design before any learner-history feature, educator-authored case tooling, governed de-identified or pseudonymized analytics, localization, and accessibility testing with additional assistive technologies. The application will remain a fictional educational simulator rather than a diagnostic product.
 
 ### Safety statement
 

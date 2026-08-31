@@ -32,15 +32,17 @@ Suggested topics:
 - [ ] `OPENAI_API_KEY` stored only as a deployment secret
 - [ ] `SUPABASE_URL` and server-only `SUPABASE_SECRET_KEY` added to Streamlit deployment secrets
 - [ ] Confirm `supabase/` is the GitHub integration working directory (`.` from repository root)
-- [ ] Link the intended project, verify its reference, and inspect `supabase migration list` plus existing remote schemas before any apply
-- [ ] For a verified clean/reconciled target only, review `supabase db push --dry-run`, then apply the versioned migration
-- [ ] Verify new registration, exact duplicate-email reuse without profile disclosure or overwrite, and neutral handling of conflicting duplicate data against Supabase
+- [x] Install the Supabase CLI and link this checkout to the intended hosted project
+- [x] Apply the versioned VascuCase migration to the hosted database
+- [x] Verify the live registration RPC and its dictionary response shape through `supabase-py`
+- [x] Verify the local Streamlit app can persist a participant registration
+- [ ] Verify exact duplicate-email reuse without profile disclosure or overwrite, and neutral handling of conflicting duplicate data against hosted Supabase
 - [ ] Verify institution fields, medical-student institutional-number requirement, `consent_version`/`consented_at`, result persistence, and overall/per-version attempt numbering
 - [ ] Confirm no direct `anon`/`authenticated`/`service_role` table access and that only the intended service-role RPC wrappers execute
 - [ ] `OPENAI_MODEL=gpt-5.6` configured
 - [x] Fallback feedback verified
 
-No remote migration was applied during the documented local implementation. Do not mark the migration or live Supabase checks complete until the target's history is reviewed and the hosted behavior is observed.
+The checkout is linked, the migration is applied to the hosted project, and live participant registration has been observed through both the RPC and local Streamlit application. Result persistence, retry behavior, and concurrent attempt allocation still require explicit hosted smoke testing before final release.
 
 ## Privacy and data governance
 
